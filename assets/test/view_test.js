@@ -488,6 +488,26 @@ describe("View + DOM", function() {
       )
       expect(childIds()).toEqual([1])
     })
+
+    test("remove", async () => {
+      let view = createView({
+        "0": {"d": [["1","", "1"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
+        "s": [`<div id="list" phx-update="append">`, `</div>`]
+      })
+      expect(childIds()).toEqual([1])
+
+      // Append two elements
+      updateDynamics(view,
+        [["2", "","2"], ["3", "", "3"]]
+      )
+      expect(childIds()).toEqual([1,2,3])
+
+      // remove 2nd element
+      updateDynamics(view,
+        [["2", "phx-remove", "not important"]]
+      )
+      expect(childIds()).toEqual([1,3])
+    })
   })
 })
 
