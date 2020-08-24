@@ -341,6 +341,43 @@ describe("View + DOM", function() {
       expect(childIds()).toEqual([2,3])
     })
 
+    test("append when there is already a duplicate id somewhere else in the DOM", async () => {
+      let view = createView({
+        "0": {"d": [["1", "1"]], "s": [`\n<div id="`, `">`, `</div>\n`]},
+        "s": [`<div id="list" phx-update="append">`, `</div><div id="3"></div>`]
+      })
+      expect(childIds()).toEqual([1])
+
+      // Append three elements, one by one
+      updateDynamics(view,
+        [["2", "2"]]
+      )
+      updateDynamics(view,
+        [["3", "3"]]
+      )
+      updateDynamics(view,
+        [["4", "4"]]
+      )
+      console.log("-----------")
+      console.log(childIds())
+      console.log("-----------")
+      expect(childIds()).toEqual([1,2,3,4])
+    })
+
+    test("append all at once when there is already a duplicate id somewhere else in the DOM", async () => {
+      let view = createView({
+        "0": {"d": [["1", "1"]], "s": [`\n<div id="`, `">`, `</div>\n`]},
+        "s": [`<div id="list" phx-update="append">`, `</div><div id="3"></div>`]
+      })
+      expect(childIds()).toEqual([1])
+
+      // Append three elements all at once
+      updateDynamics(view,
+        [["2", "2"],["3", "3"],["4", "4"]]
+      )
+      expect(childIds()).toEqual([1,2,3,4])
+    })
+
     test("append", async () => {
       let view = createView({
         "0": {"d": [["1", "1"]], "s": [`\n<div id="`, `">`, `</div>\n`]},
@@ -491,23 +528,45 @@ describe("View + DOM", function() {
 
     test("remove", async () => {
       let view = createView({
-        "0": {"d": [["1","", "1"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
+        "0": {"d": [["1","", "1"], ["2", "","2"], ["3", "", "3"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
         "s": [`<div id="list" phx-update="append">`, `</div>`]
       })
-      expect(childIds()).toEqual([1])
-
-      // Append two elements
-      updateDynamics(view,
-        [["2", "","2"], ["3", "", "3"]]
-      )
-      expect(childIds()).toEqual([1,2,3])
+      expect(childIds()).toEqual([1, 2, 3])
 
       // remove 2nd element
       updateDynamics(view,
-        [["2", "phx-remove", "not important"]]
+        [["2", "phx-remove", "div contents are ignored"]]
       )
       expect(childIds()).toEqual([1,3])
     })
+
+    // test("remove only element", async () => {
+    //   let view = createView({
+    //     "0": {"d": [["1","", "1"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
+    //     "s": [`<div id="list" phx-update="append">`, `</div>`]
+    //   })
+    //   expect(childIds()).toEqual([1])
+
+    //   // remove 2nd element
+    //   updateDynamics(view,
+    //     [["1", "phx-remove", "div contents are ignored"]]
+    //   )
+    //   expect(childIds()).toEqual([])
+    // })
+
+    // test("remove something that doesn't exist", async () => {
+    //   let view = createView({
+    //     "0": {"d": [["1","", "1"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
+    //     "s": [`<div id="list" phx-update="append">`, `</div>`]
+    //   })
+    //   expect(childIds()).toEqual([1])
+
+    //   // remove 2nd element
+    //   updateDynamics(view,
+    //     [["list", "phx-remove", "div contents are ignored"]]
+    //   )
+    //   expect(childIds()).toEqual([1])
+    // })
   })
 })
 

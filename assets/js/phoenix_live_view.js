@@ -1015,6 +1015,10 @@ export let Browser = {
 }
 
 export let DOM = {
+  getChildById(el, id){
+    return Array.from(el.childNodes).find(c => c.id === id) || logError(`no child with id: ${id} found for element: ${el}`)
+  },
+
   byId(id){ return document.getElementById(id) || logError(`no id found for ${id}`) },
 
   removeClass(el, className){
@@ -1309,9 +1313,15 @@ class DOMPostMorphRestorer {
   perform() {
     let container = DOM.byId(this.containerId)
     this.elementsToModify.forEach(elementToModify => {
+
+      // if (elementToModify.is_removed()) {
+      //   DOM.getChildById(container, elementToModify.elementId)
+      //   // document.getElementById(elementToModify.elementId)
+
+      // }
       if (elementToModify.previousElementId) {
-        maybe(document.getElementById(elementToModify.previousElementId), previousElem => {
-          maybe(document.getElementById(elementToModify.elementId), elem => {
+        maybe(DOM.getChildById(container, elementToModify.previousElementId), previousElem => {
+          maybe(DOM.getChildById(container, elementToModify.elementId), elem => {
             let isInRightPlace = elem.previousElementSibling && elem.previousElementSibling.id == previousElem.id
             if (!isInRightPlace) {
               previousElem.insertAdjacentElement("afterend", elem)
@@ -1320,7 +1330,7 @@ class DOMPostMorphRestorer {
         })
       } else {
         // This is the first element in the container
-        maybe(document.getElementById(elementToModify.elementId), elem => {
+        maybe(DOM.getChildById(container, elementToModify.elementId), elem => {
           let isInRightPlace = elem.previousElementSibling == null
           if (!isInRightPlace) {
             container.insertAdjacentElement("afterbegin", elem)
@@ -1470,6 +1480,9 @@ class DOMPatch {
             updates.push(fromEl)
             return false
           } else {
+            // isPhxUpdate(el, phxUpdate, updateTypes){
+            //   return el.getAttribute && updateTypes.indexOf(el.getAttribute(phxUpdate)) >= 0
+            // },
             if(DOM.isPhxUpdate(toEl, phxUpdate, ["append", "prepend"])){
               appendPrependUpdates.push(new DOMPostMorphRestorer(fromEl, toEl, toEl.getAttribute(phxUpdate)))
             }
