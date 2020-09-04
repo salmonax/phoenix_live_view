@@ -1016,7 +1016,8 @@ export let Browser = {
 
 export let DOM = {
   getChildById(el, id){
-    return Array.from(el.childNodes).find(c => c.id === id) || logError(`no child with id: ${id} found for element: ${el}`)
+    debugger;
+    return document.querySelector(`[id='${el.id}'] > [id='${id}']`) || logError(`no child with id: ${id} found for element: ${el}`)
   },
 
   byId(id){ return document.getElementById(id) || logError(`no id found for ${id}`) },
@@ -1311,14 +1312,17 @@ class DOMPostMorphRestorer {
   //   3) New elements are going to be put in the right place by morphdom during append.
   //      For prepend, we move them to the first position in the container
   perform() {
+    console.log("USING NEW CODE")
+
     let container = DOM.byId(this.containerId)
     this.elementsToModify.forEach(elementToModify => {
 
       // if (elementToModify.is_removed()) {
       //   DOM.getChildById(container, elementToModify.elementId)
       //   // document.getElementById(elementToModify.elementId)
-
       // }
+      console.dir( container.children)
+      console.dir(elementToModify)
       if (elementToModify.previousElementId) {
         maybe(DOM.getChildById(container, elementToModify.previousElementId), previousElem => {
           maybe(DOM.getChildById(container, elementToModify.elementId), elem => {
