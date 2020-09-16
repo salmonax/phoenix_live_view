@@ -1016,7 +1016,6 @@ export let Browser = {
 
 export let DOM = {
   getChildById(el, id){
-    debugger;
     return document.querySelector(`[id='${el.id}'] > [id='${id}']`) || logError(`no child with id: ${id} found for element: ${el}`)
   },
 
@@ -1283,11 +1282,12 @@ export let DOM = {
 }
 
 class DOMPostMorphRestorer {
-  constructor(containerBefore, containerAfter, updateType) {
+  constructor(containerBefore, containerAfter, updateType, phxRemove) {
     let idsBefore = new Set()
     let idsAfter = new Set([...containerAfter.children].map(child => child.id))
 
     let elementsToModify = []
+    let elementsToRemove = []
 
     Array.from(containerBefore.children).forEach(child => {
       if (child.id) { // all of our children should be elements with ids
@@ -1303,6 +1303,9 @@ class DOMPostMorphRestorer {
     this.updateType = updateType
     this.elementsToModify = elementsToModify
     this.elementIdsToAdd = [...idsAfter].filter(id => !idsBefore.has(id))
+    this.elementIdsToRemove = [...containerAfter.children]
+      .filter(child => child.getAttribute && child.getAttribute(phxRemove) !== null)
+      .map(child => child.id)
   }
 
   // We do the following to optimize append/prepend operations:
@@ -1312,17 +1315,11 @@ class DOMPostMorphRestorer {
   //   3) New elements are going to be put in the right place by morphdom during append.
   //      For prepend, we move them to the first position in the container
   perform() {
-    console.log("USING NEW CODE")
+//    console.log("USING NEW CODE")
 
     let container = DOM.byId(this.containerId)
     this.elementsToModify.forEach(elementToModify => {
 
-      // if (elementToModify.is_removed()) {
-      //   DOM.getChildById(container, elementToModify.elementId)
-      //   // document.getElementById(elementToModify.elementId)
-      // }
-      console.dir( container.children)
-      console.dir(elementToModify)
       if (elementToModify.previousElementId) {
         maybe(DOM.getChildById(container, elementToModify.previousElementId), previousElem => {
           maybe(DOM.getChildById(container, elementToModify.elementId), elem => {
@@ -1348,6 +1345,12 @@ class DOMPostMorphRestorer {
         maybe(document.getElementById(elemId), elem => container.insertAdjacentElement("afterbegin", elem))
       })
     }
+
+    this.elementIdsToRemove.forEach(element_id => {
+      maybe(DOM.getChildById(container, element_id), element => {
+        element.remove()
+      })
+    })
   }
 }
 
@@ -1488,7 +1491,7 @@ class DOMPatch {
             //   return el.getAttribute && updateTypes.indexOf(el.getAttribute(phxUpdate)) >= 0
             // },
             if(DOM.isPhxUpdate(toEl, phxUpdate, ["append", "prepend"])){
-              appendPrependUpdates.push(new DOMPostMorphRestorer(fromEl, toEl, toEl.getAttribute(phxUpdate)))
+              appendPrependUpdates.push(new DOMPostMorphRestorer(fromEl, toEl, toEl.getAttribute(phxUpdate), this.binding(PHX_REMOVE)))
             }
             DOM.syncAttrsToProps(toEl)
             this.trackBefore("updated", fromEl, toEl)
