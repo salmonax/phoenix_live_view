@@ -1282,13 +1282,12 @@ export let DOM = {
 }
 
 class DOMPostMorphRestorer {
-  constructor(containerBefore, containerAfter, updateType, phxRemove) {
+  constructor(containerBefore, containerAfter, updateType, phxRemoveAttributeName) {
     let idsBefore = new Set()
     let idsAfter = new Set([...containerAfter.children].map(child => child.id))
 
     let elementsToModify = []
-    let elementsToRemove = []
-
+    
     Array.from(containerBefore.children).forEach(child => {
       if (child.id) { // all of our children should be elements with ids
         idsBefore.add(child.id)
@@ -1304,7 +1303,7 @@ class DOMPostMorphRestorer {
     this.elementsToModify = elementsToModify
     this.elementIdsToAdd = [...idsAfter].filter(id => !idsBefore.has(id))
     this.elementIdsToRemove = [...containerAfter.children]
-      .filter(child => child.getAttribute && child.getAttribute(phxRemove) !== null)
+      .filter(child => child.getAttribute && child.getAttribute(phxRemoveAttributeName) !== null)
       .map(child => child.id)
   }
 
