@@ -572,10 +572,10 @@ describe("View + DOM", function() {
       expect(childIds()).toEqual([1])
 
       updateDynamics(view,
-        [["7", "phx-remove", "div contents are ignored"], ["2", "", "hello"]]
+        [["1", "phx-remove", "div contents are ignored"], ["2", "", "hello"]]
       )
 
-      expect(childIds()).toEqual([1, 2])
+      expect(childIds()).toEqual([2])
     })
 
     test("modify last element and remove at the same time", async () => {
@@ -604,21 +604,6 @@ describe("View + DOM", function() {
       )
 
       expect(childIds()).toEqual([1, 3])
-    })
-
-    test("when an element is in the DOM, removing it twice does not result in an error", async () => {
-      let view = createView({
-        "0": {"d": [["1", "", "1"], ["2", "", "2"], ["3", "", "3"]], "s": [`\n<div id="`,`"`, `>`, `</div>\n`]},
-        "s": [`<div id="list" phx-update="append">`, `</div>`]
-      })
-
-      expect(childIds()).toEqual([1,2,3])
-
-      updateDynamics(view,
-        [["2", "phx-remove", "whatever"], ["2", "phx-remove", "hello"]]
-      )
-
-      expect(childIds()).toEqual([1,3])
     })
   })
 })
